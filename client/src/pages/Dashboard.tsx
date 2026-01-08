@@ -1,10 +1,13 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, CreditCard, DollarSign, Smartphone, Users, Wifi } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowUpRight, CreditCard, DollarSign, Smartphone, Users, Wifi, RefreshCw, Download, Activity } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, Area, AreaChart } from "recharts";
 import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<any>(null);
@@ -51,77 +54,92 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-4xl font-black uppercase tracking-tighter">Dashboard Overview</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Dashboard</h1>
+            <p className="text-gray-500 mt-1">Overview of your business performance</p>
+          </div>
           <div className="flex gap-2">
-            <button className="brutalist-btn px-4 py-2 text-sm">Download Report</button>
-            <button 
+            <Button variant="outline" className="gap-2">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Report</span>
+            </Button>
+            <Button 
               onClick={fetchData}
-              className="brutalist-btn px-4 py-2 text-sm bg-black text-white border-black hover:bg-gray-800"
+              className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-sm"
+              disabled={loading}
             >
-              {loading ? "Refreshing..." : "Refresh Data"}
-            </button>
+              <RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />
+              {loading ? "Refreshing..." : "Refresh"}
+            </Button>
           </div>
         </div>
 
         {/* Stats Grid */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="brutalist-card bg-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b-2 border-black bg-gray-50">
-              <CardTitle className="text-sm font-bold uppercase">Total Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Card className="modern-card overflow-hidden border-l-4 border-l-green-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Revenue</CardTitle>
+              <div className="p-2 bg-green-50 rounded-full">
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-3xl font-black">KES {stats?.total_revenue || 0}</div>
-              <p className="text-xs font-bold text-green-600 flex items-center mt-1">
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">KES {stats?.total_revenue?.toLocaleString() || 0}</div>
+              <p className="text-xs text-green-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
-                +0% from last month
+                +12.5% from last month
               </p>
             </CardContent>
           </Card>
           
-          <Card className="brutalist-card bg-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b-2 border-black bg-gray-50">
-              <CardTitle className="text-sm font-bold uppercase">Transactions</CardTitle>
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
+          <Card className="modern-card overflow-hidden border-l-4 border-l-blue-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Transactions</CardTitle>
+              <div className="p-2 bg-blue-50 rounded-full">
+                <CreditCard className="h-4 w-4 text-blue-600" />
+              </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-3xl font-black">{stats?.total_transactions || 0}</div>
-              <p className="text-xs font-bold text-green-600 flex items-center mt-1">
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{stats?.total_transactions?.toLocaleString() || 0}</div>
+              <p className="text-xs text-blue-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
-                +0% from last month
+                +8.2% from last month
               </p>
             </CardContent>
           </Card>
           
-          <Card className="brutalist-card bg-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b-2 border-black bg-gray-50">
-              <CardTitle className="text-sm font-bold uppercase">Active Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+          <Card className="modern-card overflow-hidden border-l-4 border-l-purple-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Active Users</CardTitle>
+              <div className="p-2 bg-purple-50 rounded-full">
+                <Users className="h-4 w-4 text-purple-600" />
+              </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-3xl font-black">{stats?.unique_customers || 0}</div>
-              <p className="text-xs font-bold text-green-600 flex items-center mt-1">
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{stats?.unique_customers?.toLocaleString() || 0}</div>
+              <p className="text-xs text-purple-600 flex items-center mt-1 font-medium">
                 <ArrowUpRight className="h-3 w-3 mr-1" />
-                +0% from last month
+                +4.3% from last month
               </p>
             </CardContent>
           </Card>
           
-          <Card className="brutalist-card bg-white">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 border-b-2 border-black bg-gray-50">
-              <CardTitle className="text-sm font-bold uppercase">Success Rate</CardTitle>
-              <Wifi className="h-4 w-4 text-muted-foreground" />
+          <Card className="modern-card overflow-hidden border-l-4 border-l-orange-500">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wider">Success Rate</CardTitle>
+              <div className="p-2 bg-orange-50 rounded-full">
+                <Activity className="h-4 w-4 text-orange-600" />
+              </div>
             </CardHeader>
-            <CardContent className="pt-4">
-              <div className="text-3xl font-black">
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">
                 {stats?.total_transactions > 0 
                   ? Math.round((stats?.successful_transactions / stats?.total_transactions) * 100) 
                   : 0}%
               </div>
-              <p className="text-xs font-bold text-green-600 flex items-center mt-1">
-                <ArrowUpRight className="h-3 w-3 mr-1" />
-                +0% from last month
+              <p className="text-xs text-gray-500 flex items-center mt-1">
+                Based on {stats?.total_transactions || 0} transactions
               </p>
             </CardContent>
           </Card>
@@ -129,83 +147,109 @@ export default function Dashboard() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
           {/* Chart */}
-          <Card className="col-span-4 brutalist-card bg-white">
-            <CardHeader className="border-b-2 border-black bg-gray-50">
-              <CardTitle className="uppercase font-black">Revenue Overview</CardTitle>
+          <Card className="col-span-4 modern-card">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-gray-900">Revenue Overview</CardTitle>
             </CardHeader>
-            <CardContent className="pl-2 pt-6">
+            <CardContent className="pl-0">
               <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e5e5" />
+                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#43B02A" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#43B02A" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <XAxis 
                     dataKey="name" 
-                    stroke="#000000" 
+                    stroke="#9ca3af" 
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false}
-                    fontWeight="bold"
                   />
                   <YAxis 
-                    stroke="#000000" 
+                    stroke="#9ca3af" 
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false}
                     tickFormatter={(value) => `K${value}`}
-                    fontWeight="bold"
                   />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                   <Tooltip 
-                    cursor={{fill: '#f5f5f5'}}
                     contentStyle={{
-                      backgroundColor: '#000',
-                      border: 'none',
-                      color: '#fff',
-                      fontWeight: 'bold',
-                      boxShadow: '4px 4px 0px 0px rgba(0,0,0,0.2)'
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      color: '#111827',
+                      fontWeight: 'bold'
                     }}
                   />
-                  <Bar dataKey="total" fill="#43B02A" radius={[0, 0, 0, 0]} barSize={40} />
-                </BarChart>
+                  <Area 
+                    type="monotone" 
+                    dataKey="total" 
+                    stroke="#43B02A" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorTotal)" 
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
           {/* Recent Transactions */}
-          <Card className="col-span-3 brutalist-card bg-white">
-            <CardHeader className="border-b-2 border-black bg-gray-50">
-              <CardTitle className="uppercase font-black">Recent Transactions</CardTitle>
+          <Card className="col-span-3 modern-card flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-gray-900">Recent Transactions</CardTitle>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y-2 divide-gray-100">
+            <CardContent className="p-0 flex-1">
+              <div className="divide-y divide-gray-100">
                 {recentTransactions.length > 0 ? (
                   recentTransactions.map((txn) => (
-                    <div key={txn.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 flex items-center justify-center border-2 border-black ${txn.product_type === "data" ? "bg-blue-100" : txn.product_type === "sms" ? "bg-yellow-100" : "bg-green-100"}`}>
-                          {txn.product_type === "data" ? <Wifi className="w-5 h-5" /> : txn.product_type === "sms" ? <Smartphone className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
+                    <div key={txn.id} className="flex items-center justify-between p-4 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className={cn(
+                          "w-10 h-10 rounded-full flex items-center justify-center",
+                          txn.product_type === "data" ? "bg-blue-50 text-blue-600" : 
+                          txn.product_type === "sms" ? "bg-yellow-50 text-yellow-600" : 
+                          "bg-green-50 text-green-600"
+                        )}>
+                          {txn.product_type === "data" ? <Wifi className="w-5 h-5" /> : 
+                           txn.product_type === "sms" ? <Smartphone className="w-5 h-5" /> : 
+                           <CreditCard className="w-5 h-5" />}
                         </div>
                         <div>
-                          <p className="font-bold text-sm">{txn.product_name || "Unknown Product"}</p>
+                          <p className="font-semibold text-sm text-gray-900">{txn.product_name || "Unknown Product"}</p>
                           <p className="text-xs text-gray-500 font-mono">{txn.phone_number}</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-black">KES {txn.amount}</p>
-                        <p className={`text-xs font-bold uppercase ${txn.status === "completed" ? "text-green-600" : "text-red-600"}`}>
+                        <p className="font-bold text-gray-900">KES {txn.amount}</p>
+                        <span className={cn(
+                          "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full",
+                          txn.status === "completed" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                        )}>
                           {txn.status}
-                        </p>
+                        </span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="p-8 text-center text-gray-500 font-bold">
-                    No transactions yet
+                  <div className="p-8 text-center text-gray-500">
+                    <p className="text-sm">No transactions yet</p>
                   </div>
                 )}
               </div>
-              <div className="p-4 border-t-2 border-black bg-gray-50">
-                <button className="w-full brutalist-btn py-2 text-xs">View All Transactions</button>
-              </div>
             </CardContent>
+            <div className="p-4 border-t border-gray-100 bg-gray-50/30 mt-auto">
+              <Link href="/transactions">
+                <Button variant="ghost" className="w-full text-xs font-medium text-primary hover:text-primary/80 hover:bg-primary/5">
+                  View All Transactions
+                  <ArrowUpRight className="w-3 h-3 ml-1" />
+                </Button>
+              </Link>
+            </div>
           </Card>
         </div>
       </div>
