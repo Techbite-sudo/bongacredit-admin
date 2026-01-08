@@ -32,12 +32,19 @@ A Neo-Brutalist admin dashboard for managing the BongaCredit platform. Built wit
    cd bongacredit-admin
    ```
 
-2. **Install dependencies**
+2. **Configure Environment Variables**
+   Create a `.env` file in the root directory:
+   ```bash
+   VITE_API_URL=http://localhost:3000/api/v1
+   ```
+   *Note: In production, set `VITE_API_URL` to your deployed backend URL (e.g., `https://api.bongacredit.com/api/v1`).*
+
+3. **Install dependencies**
    ```bash
    pnpm install
    ```
 
-3. **Run development server**
+4. **Run development server**
    ```bash
    pnpm dev
    ```
