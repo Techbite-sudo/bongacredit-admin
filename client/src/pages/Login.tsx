@@ -1,10 +1,10 @@
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Lock } from "lucide-react";
+import { ArrowRight, Lock, Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ export default function Login() {
       
       if (response.data.status === "success") {
         login(response.data.data.token);
-        toast.success("Login successful");
+        toast.success("Welcome back!");
         setLocation("/");
       } else {
         toast.error(response.data.message || "Login failed");
@@ -42,64 +42,78 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-mono">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 font-sans">
+      <div className="w-full max-w-md space-y-8">
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-black text-white border-4 border-black mb-4">
-            <span className="text-3xl font-black">B</span>
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4">
+            <ShieldCheck className="w-6 h-6" />
           </div>
-          <h1 className="text-4xl font-black tracking-tighter uppercase">Bonga<span className="text-green-600">Credit</span></h1>
-          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Admin Portal Access</p>
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Bonga<span className="text-primary">Credit</span></h1>
+          <p className="text-gray-500 text-sm">Sign in to your admin dashboard</p>
         </div>
 
-        <Card className="brutalist-card bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-          <CardHeader className="space-y-1 border-b-4 border-black bg-gray-50 pb-6">
-            <CardTitle className="text-2xl font-black uppercase flex items-center gap-2">
-              <Lock className="w-6 h-6" />
-              Secure Login
-            </CardTitle>
+        <Card className="modern-card border-none shadow-xl">
+          <CardHeader className="space-y-1 pb-6">
+            <CardTitle className="text-xl font-semibold text-center">Welcome back</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access the portal
+            </CardDescription>
           </CardHeader>
-          <CardContent className="pt-6">
-            <form onSubmit={handleLogin} className="space-y-6">
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="username" className="font-bold uppercase text-xs">Username</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input 
                   id="username" 
-                  placeholder="ADMIN_USER" 
-                  className="brutalist-input h-12 text-lg font-bold"
+                  placeholder="Enter your username" 
+                  className="modern-input h-11"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required 
+                  autoComplete="username"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="font-bold uppercase text-xs">Password</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                </div>
                 <Input 
                   id="password" 
                   type="password" 
                   placeholder="••••••••" 
-                  className="brutalist-input h-12 text-lg font-bold"
+                  className="modern-input h-11"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required 
+                  autoComplete="current-password"
                 />
               </div>
               
               <Button 
                 type="submit" 
-                className="w-full h-14 text-lg font-black uppercase tracking-widest bg-black text-white hover:bg-gray-900 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
+                className="w-full h-11 text-base font-medium bg-primary hover:bg-primary/90 text-white shadow-md transition-all"
                 disabled={isLoading}
               >
-                {isLoading ? "Authenticating..." : "Access Dashboard"}
-                {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    Sign In
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
         </Card>
         
         <div className="text-center">
-          <p className="text-xs font-bold text-gray-400 uppercase">
-            Restricted Access • Authorized Personnel Only
+          <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
+            <Lock className="w-3 h-3" />
+            Secured Admin Portal
           </p>
         </div>
       </div>
