@@ -40,9 +40,15 @@ export default function Products() {
 
   const toggleProductStatus = async (id: string, currentStatus: boolean) => {
     try {
-      // In a real app, we would call an API endpoint to toggle status
-      // For now, we'll just simulate it locally since the backend endpoint might need adjustment
-      const response = await api.post(`/products/${id}/activate`);
+      let response;
+      if (currentStatus) {
+        // If currently active, deactivate it (DELETE endpoint performs soft delete)
+        response = await api.delete(`/products/${id}`);
+      } else {
+        // If currently inactive, activate it
+        response = await api.post(`/products/${id}/activate`);
+      }
+
       if (response.data.status === "success") {
         toast.success(`Product ${currentStatus ? "deactivated" : "activated"} successfully`);
         fetchProducts();
