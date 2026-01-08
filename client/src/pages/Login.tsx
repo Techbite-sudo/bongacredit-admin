@@ -1,3 +1,5 @@
+import { useAuth } from "@/contexts/AuthContext";
+import api from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,19 +7,38 @@ import { Label } from "@/components/ui/label";
 import { ArrowRight, Lock } from "lucide-react";
 import { useState } from "react";
 import { useLocation } from "wouter";
+import { toast } from "sonner";
 
 export default function Login() {
   const [, setLocation] = useLocation();
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
+    
+    try {
+      const response = await api.post("/auth/login", {
+        username,
+        password
+      });
+      
+      if (response.data.status === "success") {
+        login(response.data.data.token);
+        toast.success("Login successful");
+        setLocation("/");
+      } else {
+        toast.error(response.data.message || "Login failed");
+      }
+    } catch (error: any) {
+      console.error("Login error:", error);
+      toast.error(error.response?.data?.message || "Failed to connect to server");
+    } finally {
       setIsLoading(false);
-      setLocation("/");
-    }, 1500);
+    }
   };
 
   return (
@@ -46,6 +67,8 @@ export default function Login() {
                   id="username" 
                   placeholder="ADMIN_USER" 
                   className="brutalist-input h-12 text-lg font-bold"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   required 
                 />
               </div>
@@ -56,6 +79,8 @@ export default function Login() {
                   type="password" 
                   placeholder="••••••••" 
                   className="brutalist-input h-12 text-lg font-bold"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required 
                 />
               </div>

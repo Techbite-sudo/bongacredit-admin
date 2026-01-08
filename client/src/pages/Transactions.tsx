@@ -1,4 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
+import api from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,57 +20,64 @@ import {
     useReactTable,
 } from "@tanstack/react-table";
 import { ArrowUpDown, Download, Search } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { format } from "date-fns";
 
 type Transaction = {
   id: string;
-  phone: string;
+  phone_number: string;
   amount: number;
-  product: string;
-  status: "success" | "failed" | "pending";
-  date: string;
-  mpesaCode: string;
+  product_name: string;
+  status: "completed" | "failed" | "pending";
+  created_at: string;
+  mpesa_receipt_number: string;
 };
-
-const data: Transaction[] = [
-  { id: "TXN-8923", phone: "0712***456", amount: 55, product: "1.25GB Data", status: "success", date: "2024-01-08 10:30", mpesaCode: "SB8923XJ" },
-  { id: "TXN-8922", phone: "0722***789", amount: 20, product: "250MB Data", status: "success", date: "2024-01-08 10:28", mpesaCode: "SB8922XJ" },
-  { id: "TXN-8921", phone: "0799***123", amount: 100, product: "Airtime", status: "failed", date: "2024-01-08 10:15", mpesaCode: "SB8921XJ" },
-  { id: "TXN-8920", phone: "0755***999", amount: 55, product: "1.25GB Data", status: "success", date: "2024-01-08 10:12", mpesaCode: "SB8920XJ" },
-  { id: "TXN-8919", phone: "0110***000", amount: 10, product: "200 SMS", status: "success", date: "2024-01-08 10:05", mpesaCode: "SB8919XJ" },
-  { id: "TXN-8918", phone: "0712***456", amount: 55, product: "1.25GB Data", status: "success", date: "2024-01-08 09:55", mpesaCode: "SB8918XJ" },
-  { id: "TXN-8917", phone: "0722***789", amount: 50, product: "1.5GB Data", status: "success", date: "2024-01-08 09:45", mpesaCode: "SB8917XJ" },
-  { id: "TXN-8916", phone: "0799***123", amount: 20, product: "250MB Data", status: "pending", date: "2024-01-08 09:30", mpesaCode: "SB8916XJ" },
-  { id: "TXN-8915", phone: "0755***999", amount: 55, product: "1.25GB Data", status: "success", date: "2024-01-08 09:15", mpesaCode: "SB8915XJ" },
-  { id: "TXN-8914", phone: "0110***000", amount: 10, product: "200 SMS", status: "success", date: "2024-01-08 09:00", mpesaCode: "SB8914XJ" },
-];
 
 export default function Transactions() {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
+  const [data, setData] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const response = await api.get("/transactions?pageSize=100");
+        if (response.data.status === "success") {
+          setData(response.data.data.transactions);
+        }
+      } catch (error) {
+        console.error("Failed to fetch transactions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
 
   const columns: ColumnDef<Transaction>[] = [
     {
       accessorKey: "id",
       header: "Transaction ID",
-      cell: ({ row }) => <div className="font-mono font-bold">{row.getValue("id")}</div>,
+      cell: ({ row }) => <div className="font-mono font-bold text-xs">{row.getValue("id")}</div>,
     },
     {
-      accessorKey: "mpesaCode",
+      accessorKey: "mpesa_receipt_number",
       header: "M-Pesa Code",
-      cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("mpesaCode")}</div>,
+      cell: ({ row }) => <div className="font-mono text-xs">{row.getValue("mpesa_receipt_number") || "N/A"}</div>,
     },
     {
-      accessorKey: "phone",
+      accessorKey: "phone_number",
       header: "Phone Number",
-      cell: ({ row }) => <div className="font-mono">{row.getValue("phone")}</div>,
+      cell: ({ row }) => <div className="font-mono">{row.getValue("phone_number")}</div>,
     },
     {
-      accessorKey: "product",
+      accessorKey: "product_name",
       header: "Product",
       cell: ({ row }) => (
         <div className="font-bold">
-          {row.getValue("product")}
+          {row.getValue("product_name") || "Unknown Product"}
         </div>
       ),
     },
@@ -95,7 +103,7 @@ export default function Transactions() {
         const status = row.getValue("status") as string;
         return (
           <div className={`inline-flex items-center px-2.5 py-0.5 border-2 border-black text-xs font-bold uppercase
-            ${status === "success" ? "bg-green-100 text-green-800" : 
+            ${status === "completed" ? "bg-green-100 text-green-800" : 
               status === "failed" ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"}`}>
             {status}
           </div>
@@ -103,9 +111,11 @@ export default function Transactions() {
       },
     },
     {
-      accessorKey: "date",
+      accessorKey: "created_at",
       header: "Date & Time",
-      cell: ({ row }) => <div className="text-xs font-mono text-gray-500">{row.getValue("date")}</div>,
+      cell: ({ row }) => <div className="text-xs font-mono text-gray-500">
+        {format(new Date(row.getValue("created_at")), "yyyy-MM-dd HH:mm")}
+      </div>,
     },
   ];
 
@@ -142,10 +152,10 @@ export default function Transactions() {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
                 <Input
-                  placeholder="Search transactions..."
-                  value={(table.getColumn("phone")?.getFilterValue() as string) ?? ""}
+                  placeholder="Search phone..."
+                  value={(table.getColumn("phone_number")?.getFilterValue() as string) ?? ""}
                   onChange={(event) =>
-                    table.getColumn("phone")?.setFilterValue(event.target.value)
+                    table.getColumn("phone_number")?.setFilterValue(event.target.value)
                   }
                   className="pl-8 w-[250px] brutalist-input h-9"
                 />
@@ -173,7 +183,13 @@ export default function Transactions() {
                 ))}
               </TableHeader>
               <TableBody>
-                {table.getRowModel().rows?.length ? (
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center font-bold">
+                      Loading transactions...
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow
                       key={row.id}
